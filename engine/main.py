@@ -37,10 +37,10 @@ class DataLoader:
 
     def load_all(self):
         self.create_tables()
-        self.load_csv("../data/zip_code.csv", "zip_code")
-        self.load_csv("../data/demographics_info.csv", "demographics_info")
-        self.load_csv("../data/inspection_info.csv", "inspection_info")
-        self.load_csv("../data/restaurant_info.csv", "restaurant_info")
+        self.load_csv("data/zip_code.csv", "zip_code")
+        self.load_csv("data/demographics_info.csv", "demographics_info")
+        self.load_csv("data/inspection_info.csv", "inspection_info")
+        self.load_csv("data/restaurant_info.csv", "restaurant_info")
 
     def load_csv(self, filepath, table_name):
         for row in self.parser.parse(filepath):
