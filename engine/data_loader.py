@@ -39,10 +39,10 @@ class DataLoader:
         self.create_tables()
 
         # Load each CSV file into its corresponding table
-        self.load_csv("../data/zip_code.csv", "zip_code")
-        self.load_csv("../data/demographics_info.csv", "demographics_info")
-        self.load_csv("../data/inspection_info.csv", "inspection_info")
-        self.load_csv("../data/restaurant_info.csv", "restaurant_info")
+        self.load_csv("data/zip_code.csv", "zip_code")
+        self.load_csv("data/demographics_info.csv", "demographics_info")
+        self.load_csv("data/inspection_info.csv", "inspection_info")
+        self.load_csv("data/restaurant_info.csv", "restaurant_info")
 
     def load_csv(self, filepath, table_name):
         # Parse each row from the CSV file
