@@ -2,36 +2,25 @@ import ast
 import streamlit as st
 from my_custom_db import MyCustomMiniSQLEngine
 
-
-
+# ------------------------ PAGE CONFIGURATION ------------------------
+# Configure Streamlit layout and page title
 st.set_page_config(layout="wide")
 st.set_page_config(page_title='🛠️ Custom SQL-Like Query Builder - By Python')
 
 
-def render_markdown_table(rows):
-    if not rows:
-        st.write("No data found.")
-        return
-
-    headers = list(rows[0].keys())
-    table = "| " + " | ".join(headers) + " |\n"
-    table += "| " + " | ".join("---" for _ in headers) + " |\n"
-
-    for row in rows:
-        table += "| " + " | ".join(str(row.get(h, "")) for h in headers) + " |\n"
-
-    st.markdown(table)
-
 # ------------------------ LOAD DATABASE ------------------------
+# Cache the database engine so it is initialized only once per session
 @st.cache_resource
 def load_db():
     return MyCustomMiniSQLEngine()
 
+# Initialize database engine
 db = load_db()
 
 
 # ------------------------ SIDEBAR ------------------------
 with st.sidebar:
+    # Feature toggles are shown only in normal mode
     if not st.session_state.get("advanced_mode", False):
         st.markdown("### ENABLE")
         enable_join = st.checkbox(" Join 🔗", value=False)
@@ -39,36 +28,44 @@ with st.sidebar:
         enable_where = st.checkbox(" Where 🔬", value=False)
         enable_order_by = st.checkbox(" Order By 🔽", value=False)
 
+    # Display database tables and columns
     st.markdown("### TABLES")
     for table, meta in db.database.items():
         with st.expander(f"📂 {table}", expanded=False):
             for col in meta['rows'][next(iter(meta['rows']))].keys():
-                # ✅ In advanced mode, columns are clickable to insert text
+                # In advanced mode, columns are clickable for query insertion
                 if st.session_state.get("advanced_mode", False):
                     if st.button(f"{col}", key=f"{table}_{col}"):
-                        # ✅ Ensure the input exists
+                        # Initialize advanced query input if missing
                         if "adv_query_input" not in st.session_state:
                             st.session_state.adv_query_input = ""
                 
-                        # ✅ Append the column reference to the current text box content
+                        # Append selected column reference into query editor
                         current_text = st.session_state.adv_query_input
                         st.session_state.adv_query_input = current_text + f'"{table}.{col}" '
                         
-                        # ✅ Rerun to update text box with new content
+                        # Force rerun so text area updates immediately
                         st.rerun()
-
                 else:
+                    # Normal mode: just show column name
                     st.markdown(f"- {col}")
 
 
 # ------------------------ MAIN PANEL HEADER ------------------------
 col_main, col_adv = st.columns([5, 1.5])
+
 with col_main:
     st.markdown("## 🛠️ Custom SQL-Like Query Builder - By Python")
+    if not st.session_state.get("advanced_mode", False):
+        st.markdown("#### ⚙️ Query Building Assistant")
+        st.info("Use the ENABLE options in the left panel to activate JOIN, AGGREGATE, WHERE, or ORDER BY features.")
+
 with col_adv:
+    # Initialize advanced mode flag if missing
     if "advanced_mode" not in st.session_state:
         st.session_state.advanced_mode = False
 
+    # Toggle between normal and advanced query modes
     toggle_label = "🧠 Advanced Query Mode" if not st.session_state.advanced_mode else "↩️ Normal Query Mode"
     if st.button(toggle_label, use_container_width=True):
         st.session_state.advanced_mode = not st.session_state.advanced_mode
@@ -77,17 +74,15 @@ with col_adv:
 
 # ------------------------ ADVANCED QUERY MODE ------------------------
 if st.session_state.advanced_mode:
-    # ------------------------ ADVANCED QUERY MODE ------------------------
     st.markdown("### 🧠 Advanced Query Editor")
     st.info("Click any table/column name on the left to insert it into your query.")
     
-    # ✅ Default query string
+    # Default example query shown in advanced editor
     default_query = '''select_query(
         from_table="restaurant_info",
         joins=[("inspection_info", ("Restaurant_Info_ID", "F_Restaurant_Info_ID"), "inner")],
         where=[
-            [("restaurant_info.Categories", "=", "Mexican"),
-             "or", ("restaurant_info.Review_Count", ">", 5000)]
+            [("restaurant_info.Categories", "=", "Mexican")]
         ],
         group_by="restaurant_info.Categories",
         agg_col="inspection_info.Score",
@@ -97,25 +92,23 @@ if st.session_state.advanced_mode:
         descending=[True, True]
     )'''
     
-    # ✅ Initialize session state variables
+    # Initialize query input on first load
     if "adv_query_input" not in st.session_state:
         st.session_state.adv_query_input = default_query
-    
-    # ✅ RESET TRIGGER — we check this BEFORE rendering the widget
+
+    # Reset query editor when reset button is triggered
     if st.session_state.get("reset_trigger", False):
-        # We reset the text area value before rendering
         st.session_state.adv_query_input = default_query
         st.session_state.reset_trigger = False
         st.rerun()
     
-    # ✅ Render the text area
+    # Text editor for advanced query
     query_input = st.text_area(
         "Advanced Query Input",
         height=400,
         key="adv_query_input"
     )
-    
-    # ------------------- RUN QUERY + RESET BUTTONS -------------------
+
     run_col, reset_col = st.columns([5.5, 1])
     
     result = None
@@ -123,62 +116,63 @@ if st.session_state.advanced_mode:
         if st.button("🚀 Run Query"):
             import traceback
             try:
+                # Evaluate the query string safely with limited globals
                 result = eval(st.session_state.adv_query_input, {"select_query": db.select_query})
     
+                # Validate returned result
                 if result is None:
-                    st.error("⚠️ `db.select_query()` returned None.")
+                    st.error("`db.select_query()` returned None.")
                     st.stop()
     
                 if not isinstance(result, (list, tuple)):
-                    st.error(f"⚠️ Unexpected result type: {type(result)}")
+                    st.error(f"Unexpected result type: {type(result)}")
                     st.write(result)
                     st.stop()
     
                 if not result:
-                    st.warning("⚠️ Query executed successfully but returned no rows.")
+                    st.warning("Query executed successfully but returned no rows.")
                     st.stop()
     
             except Exception as e:
-                st.error(f"❌ Query failed: {e}")
+                # Display traceback for debugging
+                st.error(f"Query failed: {e}")
                 st.code(traceback.format_exc())
     
     with reset_col:
         if st.button("🔄 Reset Query"):
-            st.session_state.reset_trigger = True  # ✅ Set trigger
+            st.session_state.reset_trigger = True  
             st.rerun()
     
-    # ✅ Show result if query was successful
+    # Render query results
     if result:
         st.markdown("## Query Result")
         st.table(result)
-        #render_markdown_table(result)
         
-    
-    # ✅ Stop page to prevent loading normal builder
+    # Stop execution to prevent normal mode UI from rendering
     st.stop()
 
 
-
-
-# ------------------------ NORMAL QUERY BUILDER ------------------------
+# ------------------------ NORMAL QUERY BUILDER MODE ------------------------
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    # FROM TABLE
+    # FROM TABLE selection (disabled if JOIN is enabled)
     if not enable_join:
-        from_table = st.selectbox("FROM", list(db.database.keys()))
+        st.markdown("### TABLE")
+        from_table = st.selectbox("From Table", list(db.database.keys()))
 
-    # ✅ OPTIONAL JOIN SECTION
     join_table = left_key = right_key = join_type = None
+
+    # JOIN configuration
     if enable_join:
         st.markdown("### JOIN")
     
         from_col, left_key_col = st.columns([1, 1])
         with from_col:
-            from_table = st.selectbox("FROM", list(db.database.keys()), key="from_table")
+            from_table = st.selectbox("From Table", list(db.database.keys()), key="from_table")
         with left_key_col:
             left_key = st.selectbox(
-                "Left Key", 
+                "Left Key (Join On)", 
                 db.database[from_table]['rows'][next(iter(db.database[from_table]['rows']))].keys(),
                 key="left_key"
             )
@@ -195,11 +189,10 @@ with col1:
                 key="right_key (Join On)"
             )
     
-        # ✅ Inline Join Type
+        # Choose join type
         join_type = st.radio("Join Type", ["inner", "left"], horizontal=True)
 
-    
-    # ✅ WHERE SECTION
+    # Utility to infer numeric or string type from user input
     def _infer_type(value: str):
         if value is None or str(value).strip() == "":
             return None
@@ -211,18 +204,21 @@ with col1:
         except ValueError:
             return txt
 
+    # WHERE clause builder
     if enable_where:
         st.markdown("### WHERE")
     
         if "from_table" not in locals() or not from_table:
-            st.warning("⚠️ Please select a table first to use WHERE filters.")
+            st.warning("Please select a table first to use WHERE filters.")
         else:
+            # Collect columns from main and joined tables
             all_columns = list(db.database[from_table]['rows']
                                [next(iter(db.database[from_table]['rows']))].keys())
             if enable_join and join_table:
                 all_columns += list(db.database[join_table]['rows']
                                     [next(iter(db.database[join_table]['rows']))].keys())
 
+            # Initialize WHERE conditions if empty
             if "where_conditions" not in st.session_state or not st.session_state.where_conditions:
                 st.session_state.where_conditions = [{
                     "logic": "AND",
@@ -235,6 +231,7 @@ with col1:
             for i, cond in enumerate(st.session_state.where_conditions):
                 cols = st.columns([1, 2, 1, 2])
     
+                # First condition has no logical operator
                 if i == 0:
                     logic = "AND"
                     cols[0].markdown("**Logic**")
@@ -246,6 +243,7 @@ with col1:
                         index=["AND", "OR"].index(cond["logic"])
                     )
     
+                # Column selector
                 try:
                     col_index = all_columns.index(cond["col"])
                 except ValueError:
@@ -253,17 +251,22 @@ with col1:
                 col = cols[1].selectbox("Column", all_columns,
                                         key=f"col_{i}", index=col_index)
     
-                op = cols[2].selectbox("Operator",
-                                       ["=", "!=", ">", "<", ">=", "<="],
-                                       key=f"op_{i}",
-                                       index=["=", "!=", ">", "<", ">=", "<="].index(cond["op"]))
+                # Operator selector
+                op = cols[2].selectbox(
+                    "Operator",
+                    ["=", "!=", ">", "<", ">=", "<="],
+                    key=f"op_{i}",
+                    index=["=", "!=", ">", "<", ">=", "<="].index(cond["op"])
+                )
     
+                # Value input with type inference
                 raw = cols[3].text_input("Value", value=str(cond.get("val", "")), key=f"val_{i}")
                 val = _infer_type(raw)
     
                 new_conditions.append({"logic": logic, "col": col, "op": op, "val": val})
     
-            c1, c2 = st.columns([8, 1])
+            # Add new WHERE condition
+            c1, c2 = st.columns([7, 1])
             with c2:
                 if st.button("➕ Add"):
                     st.session_state.where_conditions.append({
@@ -275,12 +278,11 @@ with col1:
                     st.rerun()
     
             st.session_state.where_conditions = new_conditions
-    
     else:
+        # Clear WHERE conditions if feature disabled
         st.session_state.where_conditions = []
 
-
-    # ✅ AGGREGATION
+    # AGGREGATION selection
     agg_fn = agg_col = None
     if enable_Aggregation: 
         st.markdown("### AGGREGATE")
@@ -290,7 +292,6 @@ with col1:
             index=0
         )
         
-        agg_col = None
         if agg_fn != "None":
             st.markdown("### Agg Column")
             agg_fields = list(db.database[from_table]['rows'][next(iter(db.database[from_table]['rows']))].keys())
@@ -298,8 +299,7 @@ with col1:
                 agg_fields += list(db.database[join_table]['rows'][next(iter(db.database[join_table]['rows']))].keys())
             agg_col = st.selectbox("Agg Column", agg_fields)
 
-
-    # ✅ GROUP BY
+    # GROUP BY selection
     group_by = None
     if enable_Aggregation:
         st.markdown("### GROUP BY")
@@ -308,16 +308,14 @@ with col1:
             group_by_fields += list(db.database[join_table]['rows'][next(iter(db.database[join_table]['rows']))].keys())
         group_by = st.selectbox("Group By", ["None"] + group_by_fields, index=0)
 
-
-    # ✅ COLUMNS
+    # COLUMN selection
     st.markdown("### COLUMNS")
     all_fields = list(db.database[from_table]['rows'][next(iter(db.database[from_table]['rows']))].keys())
     if enable_join:
         all_fields += list(db.database[join_table]['rows'][next(iter(db.database[join_table]['rows']))].keys())
     selected_columns = st.multiselect("Select Columns", options=all_fields, default=all_fields)
 
-
-    # ✅ ORDER BY
+    # ORDER BY selection
     order_by = None
     if enable_order_by: 
         st.markdown("### ORDER BY")
@@ -328,11 +326,13 @@ with col1:
         descending_flags = {col: st.checkbox(f"Descending: {col}", key=f"desc_{col}") for col in order_by}
 
 
-# ✅ RUN QUERY (Normal Mode)
+# ------------------------ RUN QUERY (NORMAL MODE) ------------------------
 try:
     if st.button("Run Query"):
+        # Prepare JOIN clause
         joins = [(join_table, (left_key, right_key), join_type)] if enable_join else None
     
+        # Build WHERE structure in engine-compatible format
         where = []
         for i, cond in enumerate(st.session_state.where_conditions):
             if enable_join and cond['col'] in db.database[join_table]['rows'][next(iter(db.database[join_table]['rows']))].keys():
@@ -349,11 +349,13 @@ try:
                 else:
                     where.append([clause])
     
+        # Prefix GROUP BY and AGGREGATION columns properly
         group_by_prefixed = f"{from_table}.{group_by}" if group_by and group_by != "None" else None
         agg_fn_used = agg_fn if agg_fn != "None" else None
         agg_source_table = join_table if enable_join and agg_col in db.database[join_table]['rows'][next(iter(db.database[join_table]['rows']))].keys() else from_table
         agg_col_prefixed = f"{agg_source_table}.{agg_col}" if agg_col else None
     
+        # Build SELECT columns list
         select_cols = []
         if group_by and group_by != "None":
             select_cols.append(f"{from_table}.{group_by}")
@@ -366,6 +368,7 @@ try:
             if col != group_by and col != agg_col
         ]
     
+        # Execute query using custom engine
         result = db.select_query(
             from_table=from_table,
             joins=joins,
@@ -381,11 +384,10 @@ try:
             descending=[descending_flags[col] for col in order_by] if order_by else None
         )
     
-        #df = pd.DataFrame(result)
+        # Display results
         st.markdown("## Query Result")
-        #st.dataframe(df, use_container_width=True)
-        st.table(result)        
-        #render_markdown_table(result)
+        st.table(result)
 
 except Exception as e:    
+    # Catch-all error handling for query execution
     st.error(f"Query failed: {e}")
