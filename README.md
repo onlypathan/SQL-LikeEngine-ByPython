@@ -1,8 +1,33 @@
-# SQL-Like Query Engine from Scratch
 
-## Project for DSCI 551 – Fall 2025  
-**Author**: Rizwan Ahasan Pathan  
+# SQL-Like DataFrame Query Engine from Scratch (Python)
+
+**Author:** Rizwan Ahasan Pathan  
+**Affiliation:** M.S. in Applied Data Science, University of Southern California (USC)  
+**Project Type:** Systems Programming · Data Engineering  
+**Focus Areas:** Query Engines, Data Structures, Algorithm Design, Backend Systems  
 **Streamlit App**: [https://onlypathan.streamlit.app](https://onlypathan.streamlit.app)
+
+---
+
+## Overview
+
+This project implements a **fully functional SQL-like query engine from scratch in Python**, designed to demonstrate how relational data systems operate internally.  
+Rather than relying on high-level libraries such as **pandas**, **csv**, or **json**, all core data-processing logic is built using **native Python data structures**.
+
+The system supports essential SQL operations—**SELECT, WHERE, JOIN, GROUP BY, ORDER BY, and aggregation**—and includes a **Streamlit-based interactive interface** that allows users to construct and execute queries visually or programmatically.
+
+The result is a lightweight, in-memory analytical engine that closely mirrors real-world database behavior while remaining transparent and extensible.
+
+---
+
+## Project Objectives
+
+- Understand the internal mechanics of SQL query execution  
+- Implement relational operations using native Python data structures  
+- Design a modular and extensible query-processing architecture  
+- Support indexing and primary keys for performance optimization  
+- Provide an interactive web interface for query execution  
+- Enable real-world data exploration without SQL syntax
 
 ---
 
