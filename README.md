@@ -5,7 +5,7 @@
 **Affiliation:** M.S. in Applied Data Science, University of Southern California (USC)  
 **Project Type:** Systems Programming · Data Engineering  
 **Focus Areas:** Query Engines, Data Structures, Algorithm Design, Backend Systems  
-**Streamlit App**: [https://onlypathan.streamlit.app](https://onlypathan.streamlit.app)
+**Developed Streamlit App**: [https://onlypathan.streamlit.app](https://onlypathan.streamlit.app)
 
 ---
 
