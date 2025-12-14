@@ -18,6 +18,11 @@ The system supports essential SQL operations—**SELECT, WHERE, JOIN, GROUP BY, 
 
 The result is a lightweight, in-memory analytical engine that closely mirrors real-world database behavior while remaining transparent and extensible.
 
+<p align="center">
+  <img src="images/ui_01.png" width="80%" />
+</p>
+
+
 ---
 
 ## Project Objectives
@@ -31,14 +36,22 @@ The result is a lightweight, in-memory analytical engine that closely mirrors re
 
 ---
 
-## Files Included
 
-- `csv_parser.py` – Custom parser to read CSV files (no pandas/csv used)
-- `data_loader.py` – Loads tables and sets primary keys/indexes
-- `my_custom_db.py` – Core class that supports SQL-like operations
-- `index.py` – Runs queries via `select_query()` function
-- `Final_Report-SQL_Like_Query_Engine.pdf` – Final Report (8 pages)
-- `restaurant_info.csv`, `inspection_info.csv`, etc. – Dataset files *(if submitting)*
+## Repository Structure
+
+- `data/` – Input datasets used by the SQL-like query engine  
+  *(CSV-based tables used for query execution and testing)*
+- `engine/` – Core implementation of the SQL-like query engine  
+  *(custom CSV parsing, indexing, joins, grouping, sorting, and execution logic built from scratch in Python)*
+    - `csv_parser.py` – Custom parser to read CSV files (no pandas/csv used)
+    - `data_loader.py` – Loads tables and sets primary keys/indexes
+    - `my_custom_db.py` – Core class that supports SQL-like operations
+    - `index.py` – Runs queries via `select_query()` function
+- `images/` – Application and GUI screenshots  
+  *(used to demonstrate query execution, interface flow, and results)*
+- `Final_Report-SQL_Like_Query_Engine.pdf` – Full technical report detailing system design, architecture, and implementation  (8 pages)
+- `README.md` – Project documentation and usage overview  
+- `requirements.txt` – Python dependencies required to run the project
 
 ---
 
