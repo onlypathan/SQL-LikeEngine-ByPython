@@ -37,7 +37,7 @@ The result is a lightweight, in-memory analytical engine that closely mirrors re
 - `data_loader.py` – Loads tables and sets primary keys/indexes
 - `my_custom_db.py` – Core class that supports SQL-like operations
 - `index.py` – Runs queries via `select_query()` function
-- `Final_Project_Report_By_Rizwan_Ahasan_Pathan.pdf` – Final Report (8 pages)
+- `Final_Report-SQL_Like_Query_Engine.pdf` – Final Report (8 pages)
 - `restaurant_info.csv`, `inspection_info.csv`, etc. – Dataset files *(if submitting)*
 
 ---
