@@ -39,15 +39,14 @@ The result is a lightweight, in-memory analytical engine that closely mirrors re
 
 ## Repository Structure
 
-- `data/` – Input datasets used by the SQL-like query engine  
-  *(CSV-based tables used for query execution and testing)*
+- `data/` – CSV datasets used by the SQL-like engine for analysis
 - `engine/` – Core implementation of the SQL-like query engine  
   *(custom CSV parsing, indexing, joins, grouping, sorting, and execution logic built from scratch in Python)*
     - `csv_parser.py` – Custom parser to read CSV files (no pandas/csv used)
     - `data_loader.py` – Loads tables and sets primary keys/indexes
     - `my_custom_db.py` – Core class that supports SQL-like operations
     - `index.py` – Runs queries via `select_query()` function
-- `images/` – Application and GUI screenshots  
+- `images/` – Application and GUI screenshots for documentation and demonstration  
   *(used to demonstrate query execution, interface flow, and results)*
 - `Final_Report-SQL_Like_Query_Engine.pdf` – Full technical report detailing system design, architecture, and implementation  (8 pages)
 - `README.md` – Project documentation and usage overview  
@@ -86,6 +85,17 @@ streamlit run index.py
 - Chunked CSV loading for large datasets
 - Query saving & export
 - Chart-based visual summaries
+
+---
+
+## Reproducibility Notes
+
+- Python 3.9+ is required.
+- All experiments are deterministic; no random seeds are used.
+- Input datasets must be placed inside the `data/` directory in CSV format.
+- Column names and schemas must match those expected by the engine.
+- The query engine operates fully in memory and is intended for small to medium-sized datasets.
+- The project was developed and tested on macOS and Linux environments.
 
 ---
 
